@@ -3,11 +3,12 @@ Description=Network Tracker Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/khinds/server_monitor.py
-WorkingDirectory=/home/khinds
+ExecStart=/usr/bin/python3 /home/XXX/DNSMasqTrafficMonitor/server_monitor.py
+WorkingDirectory=/home/XXX/
 Restart=always
 User=khinds
 Group=khinds
 
 [Install]
 WantedBy=multi-user.target
+

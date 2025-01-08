@@ -38,9 +38,27 @@ Edit the `config.json` file to include your MySQL credentials, hostname filters,
 
 ## Installation Steps
 
+1. **Set Execute Permissions**
+
+   Make the `install.sh` script executable:
+
+   ```bash
+   chmod +x install.sh
+   ```
+
+2. **Run the Installation Script as Root**
+
+   Execute the `install.sh` script with root privileges to set up the service:
+
+   ```bash
+   sudo ./install.sh
+   ```
+
+## Manual Installation Steps
+
 1. **Copy the Service File**
 
-   Copy the `server_monitor.service` file to the systemd directory:
+   Copy the `server_monitor.service` file to the systemd directory (make sure you have the correct file path for the service python file):
 
    ```bash
    sudo cp server_monitor.service /etc/systemd/system/
@@ -76,7 +94,7 @@ Edit the `config.json` file to include your MySQL credentials, hostname filters,
 
    ```bash
    sudo systemctl status server_monitor.service
-   ```o
+   ```
 
 ## Notes
 
