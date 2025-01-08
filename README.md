@@ -6,7 +6,7 @@ The Network Tracker Service is a Linux service to monitor and track network devi
 
 - **Device Monitoring**: Automatically detects and logs devices connected to the network.
 - **Traffic Analysis**: Records network traffic data for comprehensive analysis.
-- **Customizable Configuration**: Easily configure MySQL database settings, hostname filters, and mappings.
+- **Customizable Configuration**: Easily configure MySQL database settings, hostname filters, hostname mappings, IP mappings, SQL setup commands, sleep duration, and network interfaces.
 - **Systemd Integration**: Seamlessly integrates with systemd for reliable service management.
 - **Automatic Restart**: Configured to restart automatically in case of failure, ensuring continuous monitoring.
 
@@ -34,7 +34,7 @@ Before running the service, you need to create a `config.json` file with your sp
 cp config.json-example config.json
 ```
 
-Edit the `config.json` file to include your MySQL credentials, hostname filters, hostname mappings, IP mappings, SQL setup commands, and sleep duration.
+Edit the `config.json` file to include your MySQL credentials, hostname filters, hostname mappings, IP mappings, SQL setup commands, sleep duration, and the network interfaces you want to monitor.
 
 ## Installation Steps
 

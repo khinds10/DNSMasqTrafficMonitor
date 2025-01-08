@@ -6,11 +6,13 @@ import time
 import psutil
 import threading
 import json
+import os
+import sys
+import argparse
 
 class NetworkTracker:
     
-    def __init__(self):
-        config = self.load_config()
+    def __init__(self, config):
         self.db = MySQLdb.connect(
             host=config['mysql']['host'],
             user=config['mysql']['user'],
@@ -23,15 +25,16 @@ class NetworkTracker:
         self.hostname_mappings = config.get("hostname_mappings", {})
         self.ip_mappings = config.get("ip_mappings", {})
         self.sleep_duration = config.get("sleep_duration", 300)  # Default to 300 if not specified
+        self.interfaces = config.get("interfaces", [])  # Load interfaces from config
         self.processed_entries = set()  # Initialize processed_entries as an instance variable
         
-    def load_config(self):
-        try:
-            with open('config.json', 'r') as config_file:
-                return json.load(config_file)
-        except Exception as e:
-            print(f"Error loading configuration: {e}")
-            return {}
+    def load_config(self, config_path='config.json'):
+        if not os.path.exists(config_path):
+            print(f"Error: Configuration file '{config_path}' not found.")
+            sys.exit(1)
+        
+        with open(config_path, 'r') as config_file:
+            return json.load(config_file)
     
     def setup_database(self, sql_setup):
         try:
@@ -63,7 +66,7 @@ class NetworkTracker:
                 return None
 
             traffic = {}
-            for interface in ['net1', 'net3', 'wifi-hotspot', 'br0']:
+            for interface in self.interfaces:
                 if interface in net_io and interface in self.previous_net_io:
                     traffic[interface] = {
                         'in': (net_io[interface].bytes_recv - self.previous_net_io[interface].bytes_recv) / 1024,
@@ -200,16 +203,20 @@ class NetworkTracker:
     def update_devices(self, leases):
         timestamp = datetime.now()
         for lease in leases:
-            self.cursor.execute("""
-                INSERT INTO devices 
-                (mac_address, ip_address, hostname, first_seen, last_seen)
-                VALUES (%s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE 
-                hostname = COALESCE(%s, hostname),
-                last_seen = %s
-            """, (lease['mac_address'], lease['ip_address'], lease['hostname'],
-                  timestamp, timestamp, lease['hostname'], timestamp))
-        self.db.commit()
+            try:
+                # Insert or update the device record
+                self.cursor.execute("""
+                    INSERT INTO devices 
+                    (mac_address, ip_address, hostname, first_seen, last_seen)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE 
+                    hostname = COALESCE(VALUES(hostname), hostname),
+                    last_seen = VALUES(last_seen)
+                """, (lease['mac_address'], lease['ip_address'], lease['hostname'],
+                      timestamp, timestamp))
+                self.db.commit()
+            except MySQLdb.Error as e:
+                print(f"Error updating device: {e}")
 
     def run(self):
         while True:
@@ -233,6 +240,20 @@ class NetworkTracker:
                 print(f"Error in main loop: {e}")
                 time.sleep(self.sleep_duration)
 
-if __name__ == "__main__":
-    tracker = NetworkTracker()
+def main():
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='Network Tracker Service')
+    parser.add_argument('--config', type=str, default='config.json', help='Path to the configuration file')
+    args = parser.parse_args()
+
+    # Load the configuration
+    config = NetworkTracker.load_config(None, args.config)
+
+    # Create an instance of NetworkTracker
+    tracker = NetworkTracker(config)
+
+    # Run the tracker
     tracker.run()
+
+if __name__ == "__main__":
+    main()

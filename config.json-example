@@ -21,5 +21,6 @@
         "CREATE TABLE IF NOT EXISTS activity_periods (id INT AUTO_INCREMENT PRIMARY KEY, device_id INT, hostname VARCHAR(255), timestamp DATETIME NOT NULL, FOREIGN KEY (device_id) REFERENCES devices(id), INDEX idx_time (timestamp));",
         "CREATE TABLE IF NOT EXISTS traffic_data (id INT AUTO_INCREMENT PRIMARY KEY, timestamp DATETIME, interface_name VARCHAR(255), bytes_in BIGINT, bytes_out BIGINT);"
     ],
-    "sleep_duration": 5
+    "sleep_duration": 300,
+    "interfaces": ["net1", "net2", "wifi-hotspot", "br0"]
 } 

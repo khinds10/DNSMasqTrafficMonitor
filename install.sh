@@ -15,7 +15,7 @@ Description=Network Tracker Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 $CURRENT_DIR/server_monitor.py
+ExecStart=/usr/bin/python3 $CURRENT_DIR/server_monitor.py --config $CURRENT_DIR/config.json
 Restart=always
 User=root
 Group=root
