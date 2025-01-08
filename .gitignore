@@ -1,3 +1,6 @@
+# ignore config.json to not check in your private settings
+config.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

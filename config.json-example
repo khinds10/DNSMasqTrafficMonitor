@@ -1,0 +1,25 @@
+{
+    "mysql": {
+        "host": "example_host",
+        "user": "example_user",
+        "passwd": "example_password",
+        "db": "example_db"
+    },
+    "hostname_filters": ["example-filter1", "example-filter2"],
+    "hostname_mappings": {
+        "example-hostname1": "Example Device 1",
+        "example-hostname2": "Example Device 2"
+    },
+    "ip_mappings": {
+        "192.168.1.1": "Example Device 1",
+        "192.168.1.2": "Example Device 2"
+    },
+    "sql_setup": [
+        "CREATE DATABASE IF NOT EXISTS network_tracking;",
+        "USE network_tracking;",
+        "CREATE TABLE IF NOT EXISTS devices (id INT AUTO_INCREMENT PRIMARY KEY, mac_address VARCHAR(255), ip_address VARCHAR(255), hostname VARCHAR(255), first_seen DATETIME, last_seen DATETIME);",
+        "CREATE TABLE IF NOT EXISTS activity_periods (id INT AUTO_INCREMENT PRIMARY KEY, device_id INT, hostname VARCHAR(255), timestamp DATETIME NOT NULL, FOREIGN KEY (device_id) REFERENCES devices(id), INDEX idx_time (timestamp));",
+        "CREATE TABLE IF NOT EXISTS traffic_data (id INT AUTO_INCREMENT PRIMARY KEY, timestamp DATETIME, interface_name VARCHAR(255), bytes_in BIGINT, bytes_out BIGINT);"
+    ],
+    "sleep_duration": 5
+} 

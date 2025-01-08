@@ -1,0 +1,13 @@
+[Unit]
+Description=Network Tracker Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/khinds/server_monitor.py
+WorkingDirectory=/home/khinds
+Restart=always
+User=khinds
+Group=khinds
+
+[Install]
+WantedBy=multi-user.target
