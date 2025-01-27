@@ -204,6 +204,20 @@ class NetworkTracker:
         timestamp = datetime.now()
         for lease in leases:
             try:
+                # Check the current last_seen timestamp for the device
+                self.cursor.execute("""
+                    SELECT last_seen FROM devices 
+                    WHERE mac_address = %s
+                """, (lease['mac_address'],))
+                result = self.cursor.fetchone()
+
+                # Determine if we should update last_seen
+                if result:
+                    current_last_seen = result[0]
+                    if current_last_seen and current_last_seen >= timestamp:
+                        # Skip updating if the current last_seen is more recent
+                        continue
+
                 # Insert or update the device record
                 self.cursor.execute("""
                     INSERT INTO devices 
@@ -211,7 +225,7 @@ class NetworkTracker:
                     VALUES (%s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE 
                     hostname = COALESCE(VALUES(hostname), hostname),
-                    last_seen = VALUES(last_seen)
+                    last_seen = GREATEST(VALUES(last_seen), last_seen)
                 """, (lease['mac_address'], lease['ip_address'], lease['hostname'],
                       timestamp, timestamp))
                 self.db.commit()
