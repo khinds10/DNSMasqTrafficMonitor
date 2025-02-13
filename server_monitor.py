@@ -13,13 +13,30 @@ import argparse
 class NetworkTracker:
     
     def __init__(self, config):
-        self.db = MySQLdb.connect(
-            host=config['mysql']['host'],
-            user=config['mysql']['user'],
-            passwd=config['mysql']['passwd']
-        )
-        self.cursor = self.db.cursor()
-        self.setup_database(config.get("sql_setup", []))
+        try:
+            self.db = MySQLdb.connect(
+                host=config['mysql']['host'],
+                user=config['mysql']['user'],
+                passwd=config['mysql']['passwd'],
+                # Add explicit port and connection method
+                port=config['mysql'].get('port', 3306),
+                connect_timeout=config['mysql'].get('timeout', 10)
+            )
+            self.cursor = self.db.cursor()
+            self.setup_database(config.get("sql_setup", []))
+        except MySQLdb.Error as e:
+            print(f"Failed to connect to MySQL database: {e}")
+            print("Please ensure that:")
+            print("1. MySQL server is running (systemctl status mysql)")
+            print("2. MySQL credentials in config.json are correct")
+            print("3. MySQL server is accepting connections")
+            sys.exit(1)
+        except KeyError as e:
+            print(f"Missing required MySQL configuration: {e}")
+            print("Config must include mysql.host, mysql.user, and mysql.passwd")
+            sys.exit(1)
+
+        # Initialize other instance variables
         self.previous_net_io = None  # Store previous network I/O stats
         self.hostname_filters = config.get("hostname_filters", [])
         self.hostname_mappings = config.get("hostname_mappings", {})
@@ -28,14 +45,6 @@ class NetworkTracker:
         self.interfaces = config.get("interfaces", [])  # Load interfaces from config
         self.processed_entries = set()  # Initialize processed_entries as an instance variable
         
-    def load_config(self, config_path='config.json'):
-        if not os.path.exists(config_path):
-            print(f"Error: Configuration file '{config_path}' not found.")
-            sys.exit(1)
-        
-        with open(config_path, 'r') as config_file:
-            return json.load(config_file)
-    
     def setup_database(self, sql_setup):
         try:
             for statement in sql_setup:
@@ -261,7 +270,15 @@ def main():
     args = parser.parse_args()
 
     # Load the configuration
-    config = NetworkTracker.load_config(None, args.config)
+    try:
+        with open(args.config, 'r') as config_file:
+            config = json.load(config_file)
+    except FileNotFoundError:
+        print(f"Error: Configuration file '{args.config}' not found.")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: Invalid JSON in configuration file '{args.config}'")
+        sys.exit(1)
 
     # Create an instance of NetworkTracker
     tracker = NetworkTracker(config)
